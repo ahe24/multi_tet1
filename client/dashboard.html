@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header>
+            <h1>멀티 테트리스 대시보드</h1>
+            <button id="backToGame">게임으로 돌아가기</button>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="stats-summary">
+                <div class="stat-card">
+                    <h3>전체 플레이어</h3>
+                    <span id="totalPlayers">0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>활성 게임</h3>
+                    <span id="activeGames">0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>최고 점수</h3>
+                    <span id="highestScore">0</span>
+                </div>
+            </div>
+
+            <div class="players-table-container">
+                <h2>전체 플레이어</h2>
+                <table id="playersTable">
+                    <thead>
+                        <tr>
+                            <th>순위</th>
+                            <th>플레이어명</th>
+                            <th>점수</th>
+                            <th>레벨</th>
+                            <th>라인</th>
+                            <th>상태</th>
+                            <th>접속 시간</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playersTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

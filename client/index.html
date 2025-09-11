@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-User Tetris</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="loginScreen" class="screen">
+        <div class="login-container">
+            <h1>멀티 테트리스</h1>
+            <form id="loginForm">
+                <input type="text" id="playerName" placeholder="이름을 입력하세요" maxlength="20" required>
+                <button type="submit">게임 시작</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="gameScreen" class="screen hidden">
+        <div class="game-container">
+            <div class="left-panel">
+                <h3>상위 플레이어</h3>
+                <div id="topPlayers" class="top-players"></div>
+            </div>
+
+            <div class="main-game">
+                <canvas id="gameCanvas" width="300" height="600"></canvas>
+                <div class="game-controls">
+                    <button id="pauseBtn">일시정지</button>
+                    <button id="restartBtn">다시시작</button>
+                    <button id="dashboardBtn">대시보드</button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="game-info">
+                    <div class="player-info">
+                        <h2 id="currentPlayer">Player</h2>
+                        <div class="stats">
+                            <div>점수: <span id="score">0</span></div>
+                            <div>레벨: <span id="level">1</span></div>
+                            <div>라인: <span id="lines">0</span></div>
+                        </div>
+                    </div>
+                    <div class="level-info">
+                        <h4>레벨업까지:</h4>
+                        <div class="level-progress">
+                            <div class="level-progress-bar">
+                                <div id="levelProgressFill" class="level-progress-fill"></div>
+                            </div>
+                            <div id="levelCountdown" class="level-countdown">10</div>
+                        </div>
+                    </div>
+                    <div class="next-piece">
+                        <h4>다음:</h4>
+                        <canvas id="nextCanvas" width="80" height="80"></canvas>
+                    </div>
+                </div>
+
+                <div class="instructions">
+                    <h4>조작법:</h4>
+                    <p>← → 이동</p>
+                    <p>↓ 소프트 드롭</p>
+                    <p>스페이스 하드 드롭</p>
+                    <p>↑ 회전</p>
+                    <p>P 일시정지</p>
+                </div>
+                
+                <div class="rotation-control">
+                    <h4>회전 방향:</h4>
+                    <button id="rotationToggle" class="rotation-btn">
+                        <span id="rotationDirection">반시계방향</span>
+                        <span class="rotation-icon">🔄</span>
+                    </button>
+                    <p class="rotation-hint">클릭하여 변경</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gameOverModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>게임 오버!</h2>
+            <p>최종 점수: <span id="finalScore">0</span></p>
+            <p>제거한 라인: <span id="finalLines">0</span></p>
+            <button id="playAgainBtn">다시 플레이</button>
+        </div>
+    </div>
+
+    <div id="levelUpModal" class="modal level-up-modal hidden">
+        <div class="modal-content level-up-content">
+            <div class="level-up-animation">
+                <h1>🎉 LEVEL UP! 🎉</h1>
+                <div class="level-display">
+                    <span class="new-level">레벨 <span id="newLevelNum">2</span></span>
+                </div>
+                <div class="level-up-effects">
+                    <div class="firework"></div>
+                    <div class="firework"></div>
+                    <div class="firework"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/tetris.js"></script>
+    <script src="/js/game.js"></script>
+</body>
+</html>
