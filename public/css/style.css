@@ -559,23 +559,75 @@ body {
     color: #4ecdc4;
 }
 
-#playersTable {
+#playersTable,
+#allTimeTable,
+#recentSessionsTable {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
+    font-size: 1rem;
 }
 
 #playersTable th,
-#playersTable td {
+#playersTable td,
+#allTimeTable th,
+#allTimeTable td,
+#recentSessionsTable th,
+#recentSessionsTable td {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-#playersTable th {
+#playersTable th,
+#allTimeTable th,
+#recentSessionsTable th {
     background: rgba(255, 255, 255, 0.1);
     color: #4ecdc4;
     font-weight: bold;
+    font-size: 1rem;
+}
+
+/* Column width adjustments for better space utilization */
+#playersTable th:nth-child(1), #playersTable td:nth-child(1),
+#allTimeTable th:nth-child(1), #allTimeTable td:nth-child(1),
+#recentSessionsTable th:nth-child(1), #recentSessionsTable td:nth-child(1) {
+    width: 8%;
+    text-align: center;
+}
+
+#playersTable th:nth-child(2), #playersTable td:nth-child(2),
+#allTimeTable th:nth-child(2), #allTimeTable td:nth-child(2),
+#recentSessionsTable th:nth-child(2), #recentSessionsTable td:nth-child(2) {
+    width: 25%;
+}
+
+#playersTable th:nth-child(3), #playersTable td:nth-child(3),
+#allTimeTable th:nth-child(3), #allTimeTable td:nth-child(3),
+#recentSessionsTable th:nth-child(3), #recentSessionsTable td:nth-child(3) {
+    width: 15%;
+    text-align: right;
+}
+
+#playersTable th:nth-child(4), #playersTable td:nth-child(4),
+#allTimeTable th:nth-child(4), #allTimeTable td:nth-child(4),
+#recentSessionsTable th:nth-child(4), #recentSessionsTable td:nth-child(4) {
+    width: 12%;
+    text-align: center;
+}
+
+#playersTable th:nth-child(5), #playersTable td:nth-child(5),
+#allTimeTable th:nth-child(5), #allTimeTable td:nth-child(5),
+#recentSessionsTable th:nth-child(5), #recentSessionsTable td:nth-child(5) {
+    width: 15%;
+    text-align: center;
+}
+
+#playersTable th:nth-child(6), #playersTable td:nth-child(6),
+#allTimeTable th:nth-child(6), #allTimeTable td:nth-child(6),
+#recentSessionsTable th:nth-child(6), #recentSessionsTable td:nth-child(6) {
+    width: 25%;
+    text-align: center;
 }
 
 .active-player {
@@ -584,6 +636,49 @@ body {
 
 .inactive-player {
     background: rgba(255, 107, 107, 0.1);
+}
+
+/* Enhanced table row styling */
+#allTimeTable tbody tr:nth-child(odd),
+#recentSessionsTable tbody tr:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+#allTimeTable tbody tr:hover,
+#recentSessionsTable tbody tr:hover,
+#playersTable tbody tr:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+}
+
+/* Enhanced styling for different data types */
+.score {
+    font-weight: bold;
+    color: #ff6b6b;
+    font-family: 'Courier New', monospace;
+}
+
+.lines {
+    color: #4ecdc4;
+    font-weight: 500;
+}
+
+.games {
+    color: #feca57;
+    font-weight: 500;
+}
+
+.duration {
+    color: #48dbfb;
+    font-weight: 500;
+}
+
+.last-played,
+.ended-at,
+.join-time {
+    color: #c8d6e5;
+    font-size: 0.9rem;
 }
 
 .rank {
@@ -637,13 +732,33 @@ body {
         grid-template-columns: 1fr;
     }
     
-    #playersTable {
+    #playersTable,
+    #allTimeTable,
+    #recentSessionsTable {
         font-size: 0.8rem;
     }
     
     #playersTable th,
-    #playersTable td {
+    #playersTable td,
+    #allTimeTable th,
+    #allTimeTable td,
+    #recentSessionsTable th,
+    #recentSessionsTable td {
         padding: 0.5rem;
+    }
+    
+    /* Adjust column widths for mobile */
+    #playersTable th, #playersTable td,
+    #allTimeTable th, #allTimeTable td,
+    #recentSessionsTable th, #recentSessionsTable td {
+        width: auto !important;
+        text-align: left !important;
+    }
+    
+    .last-played,
+    .ended-at,
+    .join-time {
+        font-size: 0.75rem;
     }
 }
 
