@@ -8,7 +8,7 @@ module.exports = {
       env: {
         NODE_ENV: 'development',
         HOST: '0.0.0.0',        // Server host IP (0.0.0.0 for all interfaces)
-        PORT: 2222,             // Server port
+        PORT: 3001,             // Server port
         PUBLIC_HOST: 'localhost'  // Public hostname/IP for client connections (auto-constructs PUBLIC_URL)
       },
       
@@ -16,7 +16,7 @@ module.exports = {
       env_production: {
         NODE_ENV: 'production',
         HOST: '0.0.0.0',        // Production server host
-        PORT: 2222,             // Production port
+        PORT: 3001,             // Production port
         PUBLIC_HOST: 'your-server-ip'  // Change this to your actual server IP/domain
       },
       
@@ -24,7 +24,7 @@ module.exports = {
       env_development: {
         NODE_ENV: 'development',
         HOST: 'localhost',      // Development host
-        PORT: 2222,             // Development port
+        PORT: 3001,             // Development port
         PUBLIC_HOST: 'localhost'  // Public hostname for development
       },
       
