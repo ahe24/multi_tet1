@@ -18,7 +18,6 @@ class GameManager {
         this.loginScreen = document.getElementById('loginScreen');
         this.gameScreen = document.getElementById('gameScreen');
         this.gameOverModal = document.getElementById('gameOverModal');
-        this.levelUpModal = document.getElementById('levelUpModal');
         
         this.loginForm = document.getElementById('loginForm');
         this.playerNameInput = document.getElementById('playerName');
@@ -32,7 +31,6 @@ class GameManager {
         
         this.levelProgressFill = document.getElementById('levelProgressFill');
         this.levelCountdown = document.getElementById('levelCountdown');
-        this.newLevelNum = document.getElementById('newLevelNum');
         
         this.topPlayersEl = document.getElementById('topPlayers');
         
@@ -260,7 +258,6 @@ class GameManager {
         playerDiv.innerHTML = `
             <div class="player-rank">#${rank}</div>
             <div class="player-name">${player.name}</div>
-            <div class="player-level">Lv.${player.level || 1}</div>
             <div class="player-score">${player.score}</div>
         `;
         
@@ -309,47 +306,10 @@ class GameManager {
     }
     
     triggerLevelUpEffect(newLevel) {
-        // Update modal content
-        this.newLevelNum.textContent = newLevel;
-        
-        // Show level up modal with effects
-        this.levelUpModal.classList.remove('hidden');
-        
-        // Play screen flash effect on canvas
-        this.addLevelUpCanvasEffect();
-        
-        // Auto-hide modal after 2.5 seconds
-        setTimeout(() => {
-            this.levelUpModal.classList.add('hidden');
-        }, 2500);
+        // Level up effect removed - no visual notification
     }
     
-    addLevelUpCanvasEffect() {
-        const canvas = this.gameCanvas;
-        const originalStyle = canvas.style.filter;
-        
-        // Add golden glow effect
-        canvas.style.filter = 'drop-shadow(0 0 20px #FFD700) brightness(1.3)';
-        
-        // Screen shake effect
-        let shakeCount = 0;
-        const maxShakes = 8;
-        
-        const shake = () => {
-            if (shakeCount < maxShakes) {
-                const x = (Math.random() - 0.5) * 8;
-                const y = (Math.random() - 0.5) * 8;
-                canvas.style.transform = `translate(${x}px, ${y}px)`;
-                shakeCount++;
-                setTimeout(shake, 100);
-            } else {
-                canvas.style.transform = 'translate(0px, 0px)';
-                canvas.style.filter = originalStyle;
-            }
-        };
-        
-        shake();
-    }
+    
 }
 
 window.addEventListener('load', () => {

@@ -3,6 +3,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
+const Database = require('./database');
 
 const app = express();
 const server = http.createServer(app);
@@ -22,6 +23,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../client')));
 
 const players = new Map();
+const db = new Database();
 
 class Player {
   constructor(id, name, socket) {
@@ -33,6 +35,7 @@ class Player {
     this.grid = Array(20).fill().map(() => Array(10).fill(0));
     this.status = 'playing';
     this.joinTime = new Date();
+    this.gameStartTime = new Date();
     this.socket = socket;
   }
 
@@ -99,11 +102,37 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('gameOver', (data) => {
+  socket.on('gameOver', async (data) => {
     const player = players.get(socket.id);
     if (player) {
       player.updateState({ ...data, status: 'gameover' });
       console.log(`Player ${player.name} game over with score: ${player.score}`);
+      
+      // Save game session to database
+      try {
+        await db.savePlayer({
+          id: player.id,
+          name: player.name,
+          score: player.score,
+          level: player.level,
+          lines: player.lines
+        });
+
+        await db.saveGameSession({
+          playerId: player.id,
+          playerName: player.name,
+          score: player.score,
+          level: player.level,
+          lines: player.lines,
+          startTime: player.gameStartTime.getTime(),
+          endTime: Date.now()
+        });
+
+        console.log(`Saved game session for ${player.name}: Score ${player.score}`);
+      } catch (error) {
+        console.error('Error saving game session:', error);
+      }
+      
       broadcastUpdate();
     }
   });
@@ -116,20 +145,62 @@ io.on('connection', (socket) => {
       player.lines = 0;
       player.grid = Array(20).fill().map(() => Array(10).fill(0));
       player.status = 'playing';
+      player.gameStartTime = new Date(); // Reset game start time for new session
       console.log(`Player ${player.name} restarted the game`);
       broadcastUpdate();
     }
   });
 
-  socket.on('getDashboard', () => {
+  socket.on('getDashboard', async () => {
     const ranking = getRanking();
-    socket.emit('dashboardData', ranking);
+    
+    try {
+      const topPlayers = await db.getTopPlayers(10);
+      const recentSessions = await db.getRecentSessions(20);
+      
+      socket.emit('dashboardData', {
+        ...ranking,
+        topPlayersAllTime: topPlayers,
+        recentSessions: recentSessions
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      socket.emit('dashboardData', ranking);
+    }
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     const player = players.get(socket.id);
     if (player) {
       console.log(`Player ${player.name} disconnected`);
+      
+      // Save current game state when player disconnects
+      if (player.status === 'playing' && player.score > 0) {
+        try {
+          await db.savePlayer({
+            id: player.id,
+            name: player.name,
+            score: player.score,
+            level: player.level,
+            lines: player.lines
+          });
+
+          await db.saveGameSession({
+            playerId: player.id,
+            playerName: player.name,
+            score: player.score,
+            level: player.level,
+            lines: player.lines,
+            startTime: player.gameStartTime.getTime(),
+            endTime: Date.now()
+          });
+
+          console.log(`Saved game progress for disconnected player ${player.name}: Score ${player.score}`);
+        } catch (error) {
+          console.error('Error saving game progress on disconnect:', error);
+        }
+      }
+      
       players.delete(socket.id);
       broadcastUpdate();
     }

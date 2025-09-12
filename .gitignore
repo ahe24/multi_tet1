@@ -47,3 +47,35 @@ Thumbs.db
 
 # PM2 files
 .pm2/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Cache directories
+.cache/
+.npm/
+.yarn/
+
+# Redis dump files
+*.rdb
+dump.rdb
+
+# SQLite database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Game data
+data/
+
+# SSL certificates and keys
+*.pem
+*.key
+*.cert
+*.crt
+
+# Backup files
+*.bak
+*.backup

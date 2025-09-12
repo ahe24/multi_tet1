@@ -17,6 +17,8 @@ class Dashboard {
         this.activeGamesEl = document.getElementById('activeGames');
         this.highestScoreEl = document.getElementById('highestScore');
         this.playersTableBody = document.getElementById('playersTableBody');
+        this.allTimeTableBody = document.getElementById('allTimeTableBody');
+        this.recentSessionsBody = document.getElementById('recentSessionsBody');
     }
     
     setupEventListeners() {
@@ -46,7 +48,7 @@ class Dashboard {
     }
     
     updateDashboard(data) {
-        const { topPlayers, allPlayers } = data;
+        const { topPlayers, allPlayers, topPlayersAllTime, recentSessions } = data;
         
         this.totalPlayersEl.textContent = allPlayers.length;
         
@@ -59,6 +61,14 @@ class Dashboard {
         this.highestScoreEl.textContent = highestScore.toLocaleString();
         
         this.updatePlayersTable(allPlayers);
+        
+        if (topPlayersAllTime) {
+            this.updateAllTimeTable(topPlayersAllTime);
+        }
+        
+        if (recentSessions) {
+            this.updateRecentSessionsTable(recentSessions);
+        }
     }
     
     updatePlayersTable(players) {
@@ -68,7 +78,8 @@ class Dashboard {
             const row = document.createElement('tr');
             row.className = player.status === 'playing' ? 'active-player' : 'inactive-player';
             
-            const joinTime = new Date(player.joinTime).toLocaleTimeString();
+            const joinDateTime = new Date(player.joinTime);
+            const joinTimeStr = joinDateTime.toLocaleDateString() + ' ' + joinDateTime.toLocaleTimeString();
             const statusIcon = player.status === 'playing' ? '🎮' : '💀';
             
             row.innerHTML = `
@@ -78,13 +89,12 @@ class Dashboard {
                     <span class="player-id">(${player.id.substring(0, 8)}...)</span>
                 </td>
                 <td class="score">${player.score.toLocaleString()}</td>
-                <td class="level">${player.level}</td>
                 <td class="lines">${player.lines}</td>
                 <td class="status">
                     <span class="status-icon">${statusIcon}</span>
                     ${player.status}
                 </td>
-                <td class="join-time">${joinTime}</td>
+                <td class="join-time">${joinTimeStr}</td>
             `;
             
             this.playersTableBody.appendChild(row);
@@ -99,6 +109,83 @@ class Dashboard {
         }
     }
     
+    updateAllTimeTable(players) {
+        if (!this.allTimeTableBody) return;
+        
+        this.allTimeTableBody.innerHTML = '';
+        
+        players.forEach((player, index) => {
+            const row = document.createElement('tr');
+            const lastPlayedDate = new Date(player.last_played);
+            const lastPlayedStr = lastPlayedDate.toLocaleDateString() + ' ' + lastPlayedDate.toLocaleTimeString();
+            
+            row.innerHTML = `
+                <td class="rank">${index + 1}</td>
+                <td class="player-name">${player.name}</td>
+                <td class="score">${player.high_score.toLocaleString()}</td>
+                <td class="lines">${player.total_lines.toLocaleString()}</td>
+                <td class="games">${player.total_games}</td>
+                <td class="last-played">${lastPlayedStr}</td>
+            `;
+            
+            this.allTimeTableBody.appendChild(row);
+        });
+        
+        if (players.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="7" class="no-players">기록된 플레이어가 없습니다</td>
+            `;
+            this.allTimeTableBody.appendChild(row);
+        }
+    }
+
+    updateRecentSessionsTable(sessions) {
+        if (!this.recentSessionsBody) return;
+        
+        this.recentSessionsBody.innerHTML = '';
+        
+        sessions.forEach((session, index) => {
+            const row = document.createElement('tr');
+            const endedDate = new Date(session.ended_at);
+            const endedStr = endedDate.toLocaleDateString() + ' ' + endedDate.toLocaleTimeString();
+            const duration = session.duration ? this.formatDuration(session.duration) : '미완료';
+            
+            row.innerHTML = `
+                <td class="rank">${index + 1}</td>
+                <td class="player-name">${session.player_name}</td>
+                <td class="score">${session.score.toLocaleString()}</td>
+                <td class="lines">${session.lines}</td>
+                <td class="duration">${duration}</td>
+                <td class="ended-at">${endedStr}</td>
+            `;
+            
+            this.recentSessionsBody.appendChild(row);
+        });
+        
+        if (sessions.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="7" class="no-players">최근 세션이 없습니다</td>
+            `;
+            this.recentSessionsBody.appendChild(row);
+        }
+    }
+
+    formatDuration(seconds) {
+        if (seconds < 60) {
+            return `${seconds}초`;
+        } else if (seconds < 3600) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${minutes}분 ${secs}초`;
+        } else {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return `${hours}시간 ${minutes}분`;
+        }
+    }
+
     formatTime(timestamp) {
         const now = new Date();
         const time = new Date(timestamp);
