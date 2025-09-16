@@ -361,6 +361,27 @@ body {
     color: rgba(255, 255, 255, 0.8);
 }
 
+.control-section {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 5px;
+    border-left: 3px solid rgba(78, 205, 196, 0.5);
+}
+
+.control-section strong {
+    color: #4ecdc4;
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.85rem;
+}
+
+.control-section p {
+    margin-bottom: 0.2rem;
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+}
+
 .rotation-control {
     margin-top: 2rem;
     text-align: center;
@@ -710,6 +731,144 @@ body {
     font-style: italic;
 }
 
+/* Touch Controls */
+.touch-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+    padding: 0 20px;
+    z-index: 100;
+}
+
+.touch-controls-left,
+.touch-controls-center,
+.touch-controls-right {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.touch-controls-left {
+    flex-direction: row;
+    gap: 15px;
+}
+
+.touch-controls-right {
+    flex-direction: row;
+    gap: 15px;
+}
+
+.touch-btn {
+    width: 60px;
+    height: 60px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.touch-btn:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.touch-move-btn {
+    background: linear-gradient(135deg, rgba(78, 205, 196, 0.2), rgba(69, 183, 209, 0.2));
+    border-color: rgba(78, 205, 196, 0.5);
+}
+
+.touch-move-btn:active {
+    background: linear-gradient(135deg, rgba(78, 205, 196, 0.4), rgba(69, 183, 209, 0.4));
+}
+
+.touch-rotate-btn {
+    background: linear-gradient(135deg, rgba(255, 159, 67, 0.2), rgba(254, 202, 87, 0.2));
+    border-color: rgba(255, 159, 67, 0.5);
+    width: 70px;
+    height: 70px;
+    font-size: 28px;
+}
+
+.touch-rotate-btn:active {
+    background: linear-gradient(135deg, rgba(255, 159, 67, 0.4), rgba(254, 202, 87, 0.4));
+}
+
+.touch-drop-btn {
+    background: linear-gradient(135deg, rgba(69, 183, 209, 0.2), rgba(72, 219, 251, 0.2));
+    border-color: rgba(69, 183, 209, 0.5);
+}
+
+.touch-drop-btn:active {
+    background: linear-gradient(135deg, rgba(69, 183, 209, 0.4), rgba(72, 219, 251, 0.4));
+}
+
+.touch-hard-drop-btn {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(255, 82, 82, 0.2));
+    border-color: rgba(255, 107, 107, 0.5);
+}
+
+.touch-hard-drop-btn:active {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.4), rgba(255, 82, 82, 0.4));
+}
+
+.touch-pause-btn {
+    background: linear-gradient(135deg, rgba(200, 214, 229, 0.2), rgba(255, 255, 255, 0.2));
+    border-color: rgba(200, 214, 229, 0.5);
+    font-size: 20px;
+}
+
+.touch-pause-btn:active {
+    background: linear-gradient(135deg, rgba(200, 214, 229, 0.4), rgba(255, 255, 255, 0.4));
+}
+
+/* Enhanced main-game positioning for touch controls */
+.main-game {
+    position: relative;
+}
+
+/* Canvas cursor styles for desktop mouse controls */
+#gameCanvas {
+    cursor: pointer;
+}
+
+#gameCanvas:hover {
+    box-shadow: 0 0 25px rgba(78, 205, 196, 0.3);
+}
+
+/* Touch control hints for mobile */
+.touch-controls::before {
+    content: "";
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid rgba(255, 255, 255, 0.3);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .game-container {
@@ -721,6 +880,30 @@ body {
     .left-panel,
     .right-panel {
         width: 100%;
+    }
+    
+    /* Touch controls adjustments for mobile */
+    .touch-controls {
+        bottom: 10px;
+        max-width: 350px;
+        padding: 0 10px;
+    }
+    
+    .touch-btn {
+        width: 55px;
+        height: 55px;
+        font-size: 20px;
+    }
+    
+    .touch-rotate-btn {
+        width: 65px;
+        height: 65px;
+        font-size: 24px;
+    }
+    
+    /* Add padding to main game area to prevent overlap with touch controls */
+    .main-game {
+        padding-bottom: 100px;
     }
     
     .game-info {
@@ -790,5 +973,32 @@ body {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
+    }
+    
+    /* Smaller touch controls for very small screens */
+    .touch-controls {
+        max-width: 300px;
+        bottom: 5px;
+    }
+    
+    .touch-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
+    }
+    
+    .touch-rotate-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 22px;
+    }
+    
+    .touch-controls-left,
+    .touch-controls-right {
+        gap: 10px;
+    }
+    
+    .main-game {
+        padding-bottom: 90px;
     }
 }

@@ -26,6 +26,23 @@
 
             <div class="main-game">
                 <canvas id="gameCanvas" width="300" height="600"></canvas>
+                
+                <!-- Touch Controls Overlay -->
+                <div id="touchControls" class="touch-controls hidden">
+                    <div class="touch-controls-left">
+                        <button id="touchMoveLeft" class="touch-btn touch-move-btn">◀</button>
+                        <button id="touchMoveRight" class="touch-btn touch-move-btn">▶</button>
+                    </div>
+                    <div class="touch-controls-center">
+                        <button id="touchRotate" class="touch-btn touch-rotate-btn">↻</button>
+                        <button id="touchSoftDrop" class="touch-btn touch-drop-btn">↓</button>
+                    </div>
+                    <div class="touch-controls-right">
+                        <button id="touchHardDrop" class="touch-btn touch-hard-drop-btn">⬇</button>
+                        <button id="touchPause" class="touch-btn touch-pause-btn">⏸</button>
+                    </div>
+                </div>
+                
                 <div class="game-controls">
                     <button id="pauseBtn">일시정지</button>
                     <button id="restartBtn">다시시작</button>
@@ -60,11 +77,26 @@
 
                 <div class="instructions">
                     <h4>조작법:</h4>
-                    <p>← → 이동</p>
-                    <p>↓ 소프트 드롭</p>
-                    <p>스페이스 하드 드롭</p>
-                    <p>↑ 회전</p>
-                    <p>P 일시정지</p>
+                    <div class="control-section">
+                        <strong>키보드:</strong>
+                        <p>← → 이동</p>
+                        <p>↓ 소프트 드롭</p>
+                        <p>스페이스 하드 드롭</p>
+                        <p>↑ 회전</p>
+                        <p>P 일시정지</p>
+                    </div>
+                    <div class="control-section">
+                        <strong>마우스:</strong>
+                        <p>클릭: 이동/회전</p>
+                        <p>휠: 회전</p>
+                        <p>더블클릭: 하드 드롭</p>
+                        <p>우클릭: 회전</p>
+                    </div>
+                    <div class="control-section">
+                        <strong>터치:</strong>
+                        <p>버튼 또는 스와이프</p>
+                        <p>탭: 회전</p>
+                    </div>
                 </div>
                 
                 <div class="rotation-control">

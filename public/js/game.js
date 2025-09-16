@@ -9,6 +9,8 @@ class GameManager {
         this.setupEventListeners();
         this.setupSocketEvents();
         this.setupKeyboardControls();
+        this.setupTouchControls();
+        this.setupMouseControls();
         
         this.lastTime = 0;
         this.animationId = null;
@@ -45,7 +47,17 @@ class GameManager {
         this.gameCanvas = document.getElementById('gameCanvas');
         this.nextCanvas = document.getElementById('nextCanvas');
         
+        // Touch control elements
+        this.touchControls = document.getElementById('touchControls');
+        this.touchMoveLeft = document.getElementById('touchMoveLeft');
+        this.touchMoveRight = document.getElementById('touchMoveRight');
+        this.touchRotate = document.getElementById('touchRotate');
+        this.touchSoftDrop = document.getElementById('touchSoftDrop');
+        this.touchHardDrop = document.getElementById('touchHardDrop');
+        this.touchPause = document.getElementById('touchPause');
+        
         this.previousLevel = 1;
+        this.isMobile = this.detectMobile();
     }
     
     setupEventListeners() {
@@ -309,6 +321,183 @@ class GameManager {
         // Level up effect removed - no visual notification
     }
     
+    detectMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+               || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+    }
+    
+    setupTouchControls() {
+        // Show touch controls on mobile devices
+        if (this.isMobile && this.touchControls) {
+            this.touchControls.classList.remove('hidden');
+        }
+        
+        // Touch button event listeners
+        if (this.touchMoveLeft) {
+            this.touchMoveLeft.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.handleGameAction('moveLeft');
+            });
+        }
+        
+        if (this.touchMoveRight) {
+            this.touchMoveRight.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.handleGameAction('moveRight');
+            });
+        }
+        
+        if (this.touchRotate) {
+            this.touchRotate.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.handleGameAction('rotate');
+            });
+        }
+        
+        if (this.touchSoftDrop) {
+            this.touchSoftDrop.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.handleGameAction('softDrop');
+            });
+        }
+        
+        if (this.touchHardDrop) {
+            this.touchHardDrop.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.handleGameAction('hardDrop');
+            });
+        }
+        
+        if (this.touchPause) {
+            this.touchPause.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.pauseGame();
+            });
+        }
+        
+        // Canvas touch events for swipe gestures
+        if (this.gameCanvas) {
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchStartTime = 0;
+            
+            this.gameCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                touchStartTime = Date.now();
+            });
+            
+            this.gameCanvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (!e.changedTouches[0]) return;
+                
+                const touch = e.changedTouches[0];
+                const touchEndX = touch.clientX;
+                const touchEndY = touch.clientY;
+                const touchEndTime = Date.now();
+                
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+                const deltaTime = touchEndTime - touchStartTime;
+                
+                // Quick tap (less than 200ms)
+                if (deltaTime < 200 && Math.abs(deltaX) < 20 && Math.abs(deltaY) < 20) {
+                    this.handleGameAction('rotate');
+                    return;
+                }
+                
+                // Swipe detection (minimum 30px movement)
+                if (Math.abs(deltaX) > 30 || Math.abs(deltaY) > 30) {
+                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                        // Horizontal swipe
+                        if (deltaX > 0) {
+                            this.handleGameAction('moveRight');
+                        } else {
+                            this.handleGameAction('moveLeft');
+                        }
+                    } else {
+                        // Vertical swipe
+                        if (deltaY > 0) {
+                            this.handleGameAction('softDrop');
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    setupMouseControls() {
+        if (!this.gameCanvas) return;
+        
+        // Mouse click controls
+        this.gameCanvas.addEventListener('click', (e) => {
+            if (!this.tetris) return;
+            
+            const rect = this.gameCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const canvasWidth = rect.width;
+            
+            // Click on left side to move left, right side to move right
+            if (x < canvasWidth * 0.3) {
+                this.handleGameAction('moveLeft');
+            } else if (x > canvasWidth * 0.7) {
+                this.handleGameAction('moveRight');
+            } else {
+                // Middle click to rotate
+                this.handleGameAction('rotate');
+            }
+        });
+        
+        // Mouse wheel rotation
+        this.gameCanvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (!this.tetris) return;
+            
+            this.handleGameAction('rotate');
+        });
+        
+        // Right-click to rotate
+        this.gameCanvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (!this.tetris) return;
+            
+            this.handleGameAction('rotate');
+        });
+        
+        // Double-click for hard drop
+        this.gameCanvas.addEventListener('dblclick', (e) => {
+            e.preventDefault();
+            if (!this.tetris) return;
+            
+            this.handleGameAction('hardDrop');
+        });
+    }
+    
+    handleGameAction(action) {
+        if (!this.tetris) return;
+        
+        switch (action) {
+            case 'moveLeft':
+                this.tetris.movePiece(-1, 0);
+                break;
+            case 'moveRight':
+                this.tetris.movePiece(1, 0);
+                break;
+            case 'rotate':
+                this.tetris.rotatePiece();
+                break;
+            case 'softDrop':
+                this.tetris.movePiece(0, 1);
+                break;
+            case 'hardDrop':
+                this.tetris.hardDrop();
+                break;
+        }
+        
+        this.tetris.draw();
+    }
     
 }
 
