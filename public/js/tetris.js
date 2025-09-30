@@ -399,10 +399,12 @@ class Tetris {
     
     startGravityAnimation() {
         this.gravityBlocks = [];
-        
+
         // Make a copy of current grid state (after lines were cleared)
         const afterClearGrid = this.grid.map(row => [...row]);
-        
+
+        console.log('=== Starting Gravity Animation ===');
+
         // Calculate gravity - find blocks that need to fall
         for (let x = 0; x < this.COLS; x++) {
             for (let y = this.ROWS - 2; y >= 0; y--) {
@@ -416,8 +418,10 @@ class Tetris {
                             break;
                         }
                     }
-                    
+
                     if (fallDistance > 0) {
+                        console.log(`Block at (${x}, ${y}) falls ${fallDistance} rows to (${x}, ${y + fallDistance})`);
+
                         // Add to gravity animation
                         this.gravityBlocks.push({
                             x: x,
@@ -426,7 +430,7 @@ class Tetris {
                             value: afterClearGrid[y][x],
                             animationProgress: 0
                         });
-                        
+
                         // Update grid with final positions
                         afterClearGrid[y][x] = 0;
                         afterClearGrid[y + fallDistance][x] = this.gravityBlocks[this.gravityBlocks.length - 1].value;
@@ -434,13 +438,17 @@ class Tetris {
                 }
             }
         }
-        
+
         if (this.gravityBlocks.length > 0) {
             this.applyingGravity = true;
             this.gravityAnimationTime = 0;
-            
+
+            console.log(`Total blocks falling: ${this.gravityBlocks.length}`);
+
             // Update grid to final state immediately (lines stay cleared)
             this.grid = afterClearGrid;
+        } else {
+            console.log('No gravity needed - no floating blocks');
         }
     }
     
@@ -478,16 +486,10 @@ class Tetris {
         this.applyingGravity = false;
         this.gravityBlocks = [];
         this.gravityAnimationTime = 0;
-        
+
         // Check if gravity created new complete lines and clear them
+        // The piece spawning is handled in completeLinesClearing() after all recursive clears
         this.clearLines();
-        
-        // Only spawn new piece if no new lines are being cleared
-        if (!this.clearingLines) {
-            if (!this.spawnPiece()) {
-                this.gameOver();
-            }
-        }
     }
     
     hardDrop() {
@@ -541,16 +543,52 @@ class Tetris {
     }
     
     drawGrid() {
+        // Create a set of positions that are currently animating (falling)
+        const animatingPositions = new Set();
+        if (this.applyingGravity && this.gravityBlocks.length > 0) {
+            // Create a map of end positions to check overlaps
+            const endPositions = new Set();
+            this.gravityBlocks.forEach(block => {
+                endPositions.add(`${block.x},${block.endY}`);
+            });
+
+            this.gravityBlocks.forEach(block => {
+                // Hide the final position where the block will land
+                animatingPositions.add(`${block.x},${block.endY}`);
+
+                // Also hide the start position ONLY if no other block is landing there
+                if (!endPositions.has(`${block.x},${block.startY}`)) {
+                    animatingPositions.add(`${block.x},${block.startY}`);
+                }
+            });
+
+            // Debug: log what we're hiding
+            if (this.gravityBlocks.length > 0 && this.gravityAnimationTime < 100) {
+                console.log('Hiding grid positions:', Array.from(animatingPositions).join(' | '));
+            }
+        }
+
         for (let y = 0; y < this.ROWS; y++) {
             for (let x = 0; x < this.COLS; x++) {
-                const value = this.grid[y][x];
-                this.ctx.fillStyle = this.colors[value];
-                this.ctx.fillRect(x * this.BLOCK_SIZE, y * this.BLOCK_SIZE, 
-                                this.BLOCK_SIZE, this.BLOCK_SIZE);
-                
-                this.ctx.strokeStyle = '#333';
-                this.ctx.strokeRect(x * this.BLOCK_SIZE, y * this.BLOCK_SIZE,
-                                  this.BLOCK_SIZE, this.BLOCK_SIZE);
+                // Skip drawing blocks that are currently animating
+                if (animatingPositions.has(`${x},${y}`)) {
+                    // Draw empty block instead
+                    this.ctx.fillStyle = this.colors[0];
+                    this.ctx.fillRect(x * this.BLOCK_SIZE, y * this.BLOCK_SIZE,
+                                    this.BLOCK_SIZE, this.BLOCK_SIZE);
+                    this.ctx.strokeStyle = '#333';
+                    this.ctx.strokeRect(x * this.BLOCK_SIZE, y * this.BLOCK_SIZE,
+                                      this.BLOCK_SIZE, this.BLOCK_SIZE);
+                } else {
+                    const value = this.grid[y][x];
+                    this.ctx.fillStyle = this.colors[value];
+                    this.ctx.fillRect(x * this.BLOCK_SIZE, y * this.BLOCK_SIZE,
+                                    this.BLOCK_SIZE, this.BLOCK_SIZE);
+
+                    this.ctx.strokeStyle = '#333';
+                    this.ctx.strokeRect(x * this.BLOCK_SIZE, y * this.BLOCK_SIZE,
+                                      this.BLOCK_SIZE, this.BLOCK_SIZE);
+                }
             }
         }
     }
@@ -716,31 +754,28 @@ class Tetris {
     
     drawGravityBlocks() {
         if (!this.applyingGravity || this.gravityBlocks.length === 0) return;
-        
+
+        // Debug: log animation state once
+        if (this.gravityAnimationTime < 50) {
+            console.log('Animation progress:', this.gravityBlocks.map(b =>
+                `(${b.x},${b.startY}→${b.endY}): ${(b.animationProgress * 100).toFixed(0)}%`
+            ).join(' | '));
+        }
+
         // Draw falling blocks with animation
         this.gravityBlocks.forEach(block => {
             const animatedY = block.startY + (block.endY - block.startY) * block.animationProgress;
             const drawX = block.x * this.BLOCK_SIZE;
-            const drawY = animatedY * this.BLOCK_SIZE;
-            
-            // Draw the falling block
+            const drawY = Math.round(animatedY * this.BLOCK_SIZE); // Round to avoid sub-pixel rendering
+
+            // Draw the falling block with standard styling
             this.ctx.fillStyle = this.colors[block.value];
             this.ctx.fillRect(drawX, drawY, this.BLOCK_SIZE, this.BLOCK_SIZE);
-            
-            // Add a subtle glow effect to falling blocks
-            this.ctx.strokeStyle = this.colors[block.value] + '80';
-            this.ctx.lineWidth = 2;
+
+            // Standard border
+            this.ctx.strokeStyle = '#333';
+            this.ctx.lineWidth = 1;
             this.ctx.strokeRect(drawX, drawY, this.BLOCK_SIZE, this.BLOCK_SIZE);
-            
-            // Add motion blur effect (trail)
-            const trailAlpha = 0.3;
-            for (let i = 1; i <= 3; i++) {
-                const trailY = animatedY - i * 0.5;
-                if (trailY >= 0) {
-                    this.ctx.fillStyle = this.colors[block.value] + Math.floor(trailAlpha * 255 / i).toString(16).padStart(2, '0');
-                    this.ctx.fillRect(drawX, trailY * this.BLOCK_SIZE, this.BLOCK_SIZE, this.BLOCK_SIZE);
-                }
-            }
         });
     }
     
