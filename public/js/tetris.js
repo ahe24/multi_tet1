@@ -796,6 +796,11 @@ class Tetris {
 
         console.log(`Inserted ${garbageToAdd} garbage lines successfully`);
 
+        // Broadcast state change after garbage insertion
+        if (this.onStateChange) {
+            this.onStateChange();
+        }
+
         // Check if any blocks exist in the top rows (game over condition)
         // Check top 2 rows for any placed blocks
         for (let y = 0; y < 2; y++) {
