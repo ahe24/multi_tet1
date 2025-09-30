@@ -1002,3 +1002,23 @@ body {
         padding-bottom: 90px;
     }
 }
+
+/* Garbage attack notification animation */
+@keyframes slideInOut {
+    0% {
+        opacity: 0;
+        transform: translateY(-50%) translateX(50px);
+    }
+    20% {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+    80% {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-50%) translateX(50px);
+    }
+}

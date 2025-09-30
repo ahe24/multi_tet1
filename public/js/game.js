@@ -96,21 +96,29 @@ class GameManager {
             this.playerId = data.playerId;
             this.playerName = data.playerName;
             this.currentPlayerEl.textContent = data.playerName;
-            
+
             this.loginScreen.classList.add('hidden');
             this.gameScreen.classList.remove('hidden');
-            
+
             this.startGame();
         });
-        
+
         this.socket.on('gameUpdate', (data) => {
             this.updateTopPlayers(data.topPlayers);
         });
-        
+
+        this.socket.on('garbageAttack', (data) => {
+            // Receive garbage attack from another player
+            if (this.tetris) {
+                this.tetris.addIncomingGarbage(data.amount);
+                this.showGarbageNotification(data.amount, data.fromPlayer);
+            }
+        });
+
         this.socket.on('disconnect', () => {
             console.log('Disconnected from server');
         });
-        
+
         this.socket.on('reconnect', () => {
             console.log('Reconnected to server');
         });
@@ -160,35 +168,40 @@ class GameManager {
     
     startGame() {
         this.tetris = new Tetris(this.gameCanvas, this.nextCanvas);
-        
+
         this.tetris.onScoreUpdate = (score, level, lines) => {
             this.scoreEl.textContent = score;
             this.levelEl.textContent = level;
             this.linesEl.textContent = lines;
-            
+
             // Check for level up
             if (level > this.previousLevel) {
                 this.triggerLevelUpEffect(level);
                 this.previousLevel = level;
             }
-            
+
             // Update level progress
             this.updateLevelProgress(lines, level);
-            
+
             this.sendGameState();
         };
-        
+
         this.tetris.onGameOver = (score, lines) => {
             this.finalScoreEl.textContent = score;
             this.finalLinesEl.textContent = lines;
             this.gameOverModal.classList.remove('hidden');
             this.socket.emit('gameOver', this.tetris.getState());
         };
-        
+
         this.tetris.onStateChange = () => {
             this.sendGameState();
         };
-        
+
+        this.tetris.onGarbageAttack = (amount) => {
+            // Send garbage attack to all other players
+            this.socket.emit('sendGarbage', { amount: amount });
+        };
+
         this.tetris.start();
         this.updateRotationDisplay();
         this.startGameLoop();
@@ -199,16 +212,45 @@ class GameManager {
         const gameLoop = (currentTime) => {
             const deltaTime = currentTime - this.lastTime;
             this.lastTime = currentTime;
-            
+
             if (this.tetris) {
                 this.tetris.update(deltaTime);
                 this.tetris.draw();
+                this.drawGarbageIndicator();
             }
-            
+
             this.animationId = requestAnimationFrame(gameLoop);
         };
-        
+
         this.animationId = requestAnimationFrame(gameLoop);
+    }
+
+    drawGarbageIndicator() {
+        if (!this.tetris || this.tetris.incomingGarbage <= 0) return;
+
+        const canvas = this.gameCanvas;
+        const ctx = canvas.getContext('2d');
+
+        // Draw red bar on the right side of the canvas
+        const barWidth = 8;
+        const maxHeight = canvas.height;
+        const barHeight = Math.min((this.tetris.incomingGarbage / 10) * maxHeight, maxHeight);
+
+        // Semi-transparent red bar
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.6)';
+        ctx.fillRect(canvas.width - barWidth, maxHeight - barHeight, barWidth, barHeight);
+
+        // Number indicator at top of bar
+        if (this.tetris.incomingGarbage > 0) {
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(
+                this.tetris.incomingGarbage.toString(),
+                canvas.width - barWidth / 2,
+                maxHeight - barHeight - 5
+            );
+        }
     }
     
     pauseGame() {
@@ -281,8 +323,15 @@ class GameManager {
     drawMiniGrid(ctx, grid, width, height) {
         const blockSize = Math.min(width / 10, height / 20);
         const colors = [
-            '#000000', '#FF0000', '#00FF00', '#0000FF', 
-            '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500'
+            '#000000', // Empty
+            '#FF0000', // I piece
+            '#00FF00', // O piece
+            '#0000FF', // T piece
+            '#FFFF00', // S piece
+            '#FF00FF', // Z piece
+            '#00FFFF', // J piece
+            '#FFA500', // L piece
+            '#808080'  // Garbage block
         ];
         
         ctx.clearRect(0, 0, width, height);
@@ -477,7 +526,7 @@ class GameManager {
     
     handleGameAction(action) {
         if (!this.tetris) return;
-        
+
         switch (action) {
             case 'moveLeft':
                 this.tetris.movePiece(-1, 0);
@@ -495,10 +544,38 @@ class GameManager {
                 this.tetris.hardDrop();
                 break;
         }
-        
+
         this.tetris.draw();
     }
-    
+
+    showGarbageNotification(amount, fromPlayer) {
+        // Create subtle notification
+        const notification = document.createElement('div');
+        notification.className = 'garbage-notification';
+        notification.textContent = `+${amount}`;
+        notification.style.cssText = `
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: rgba(128, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideInOut 2s ease-in-out;
+        `;
+
+        this.gameScreen.style.position = 'relative';
+        this.gameScreen.appendChild(notification);
+
+        setTimeout(() => {
+            notification.remove();
+        }, 2000);
+    }
+
 }
 
 window.addEventListener('load', () => {

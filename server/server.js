@@ -151,6 +151,24 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('sendGarbage', (data) => {
+    const player = players.get(socket.id);
+    if (player) {
+      const garbageAmount = data.amount;
+      console.log(`Player ${player.name} sending ${garbageAmount} garbage lines to all opponents`);
+
+      // Send garbage to all other active players
+      players.forEach((targetPlayer, targetSocketId) => {
+        if (targetSocketId !== socket.id && targetPlayer.status === 'playing') {
+          targetPlayer.socket.emit('garbageAttack', {
+            amount: garbageAmount,
+            fromPlayer: player.name
+          });
+        }
+      });
+    }
+  });
+
   socket.on('getDashboard', async () => {
     const ranking = getRanking();
     

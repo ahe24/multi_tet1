@@ -39,14 +39,19 @@ class Tetris {
         this.colors = [
             '#000000', // Empty
             '#FF0000', // I piece
-            '#00FF00', // O piece  
+            '#00FF00', // O piece
             '#0000FF', // T piece
             '#FFFF00', // S piece
             '#FF00FF', // Z piece
             '#00FFFF', // J piece
-            '#FFA500'  // L piece
+            '#FFA500', // L piece
+            '#808080'  // Garbage block
         ];
         
+        // Garbage line system
+        this.incomingGarbage = 0; // Queue of garbage lines to add
+        this.garbageColor = 8; // Special color for garbage blocks
+
         this.pieces = {
             I: [
                 [0,0,0,0],
@@ -91,6 +96,7 @@ class Tetris {
         this.onScoreUpdate = null;
         this.onGameOver = null;
         this.onStateChange = null;
+        this.onGarbageAttack = null; // Callback when player sends garbage to others
     }
     
     init() {
@@ -163,17 +169,21 @@ class Tetris {
     
     movePiece(dx, dy) {
         if (!this.currentPiece || !this.gameRunning || this.gamePaused) return false;
-        
+
         if (!this.isCollision(this.currentPiece, dx, dy)) {
             this.currentPiece.x += dx;
             this.currentPiece.y += dy;
             return true;
         }
-        
+
         if (dy > 0) {
             this.placePiece();
+
+            // Insert garbage lines before clearing lines
+            this.insertGarbageLines();
+
             this.clearLines();
-            
+
             // Only spawn new piece if no lines are being cleared
             if (!this.clearingLines) {
                 if (!this.spawnPiece()) {
@@ -181,7 +191,7 @@ class Tetris {
                 }
             }
         }
-        
+
         return false;
     }
     
@@ -313,10 +323,10 @@ class Tetris {
     
     completeLinesClearing() {
         const linesCleared = this.linesToClear.length;
-        
+
         // Actually remove the lines from grid
         this.linesToClear.sort((a, b) => b - a); // Sort descending to remove from bottom up
-        
+
         // Create a new grid without the cleared lines
         const newGrid = [];
         for (let y = 0; y < this.ROWS; y++) {
@@ -324,31 +334,52 @@ class Tetris {
                 newGrid.push([...this.grid[y]]);
             }
         }
-        
+
         // Add empty lines at the top
         while (newGrid.length < this.ROWS) {
             newGrid.unshift(Array(this.COLS).fill(0));
         }
-        
+
         this.grid = newGrid;
-        
+
         // Apply gravity physics to make floating blocks fall
         this.startGravityAnimation();
-        
+
         // Update score and level
         this.lines += linesCleared;
         const points = [0, 40, 100, 300, 1200][linesCleared] * this.level;
         this.score += points;
-        
+
         this.level = Math.floor(this.lines / 10) + 1;
         this.dropInterval = Math.max(50, 1000 - (this.level - 1) * 50);
-        
+
+        // Garbage system: Cancel incoming garbage first, then send attack
+        const garbageToSend = this.calculateGarbageLines(linesCleared);
+        if (garbageToSend > 0) {
+            if (this.incomingGarbage > 0) {
+                // Cancel incoming garbage
+                const cancelled = Math.min(this.incomingGarbage, garbageToSend);
+                this.incomingGarbage -= cancelled;
+                const remaining = garbageToSend - cancelled;
+
+                // Send remaining as attack
+                if (remaining > 0 && this.onGarbageAttack) {
+                    this.onGarbageAttack(remaining);
+                }
+            } else {
+                // Send all as attack
+                if (this.onGarbageAttack) {
+                    this.onGarbageAttack(garbageToSend);
+                }
+            }
+        }
+
         // Reset animation state
         this.clearingLines = false;
         this.linesToClear = [];
         this.clearAnimationTime = 0;
         this.flashEffect = null;
-        
+
         // Spawn new piece after line clearing is complete (only if no gravity animation)
         if (!this.applyingGravity) {
             if (!this.spawnPiece()) {
@@ -356,11 +387,11 @@ class Tetris {
                 return;
             }
         }
-        
+
         if (this.onScoreUpdate) {
             this.onScoreUpdate(this.score, this.level, this.lines);
         }
-        
+
         if (this.onStateChange) {
             this.onStateChange();
         }
@@ -461,13 +492,17 @@ class Tetris {
     
     hardDrop() {
         if (!this.currentPiece || !this.gameRunning || this.gamePaused) return;
-        
+
         while (!this.isCollision(this.currentPiece, 0, 1)) {
             this.currentPiece.y++;
         }
         this.placePiece();
+
+        // Insert garbage lines before clearing lines
+        this.insertGarbageLines();
+
         this.clearLines();
-        
+
         // Only spawn new piece if no lines are being cleared
         if (!this.clearingLines) {
             this.spawnPiece();
@@ -715,8 +750,63 @@ class Tetris {
             score: this.score,
             level: this.level,
             lines: this.lines,
-            status: this.gameRunning ? 'playing' : 'gameover'
+            status: this.gameRunning ? 'playing' : 'gameover',
+            incomingGarbage: this.incomingGarbage
         };
     }
-    
+
+    // Calculate garbage lines to send based on lines cleared
+    calculateGarbageLines(linesCleared) {
+        const garbageMap = {
+            1: 0, // Single - no garbage
+            2: 1, // Double - 1 garbage line
+            3: 2, // Triple - 2 garbage lines
+            4: 4  // Tetris - 4 garbage lines
+        };
+        return garbageMap[linesCleared] || 0;
+    }
+
+    // Add incoming garbage to queue
+    addIncomingGarbage(amount) {
+        this.incomingGarbage += amount;
+        console.log(`Incoming garbage: +${amount}, Total queued: ${this.incomingGarbage}`);
+    }
+
+    // Insert garbage lines at bottom when piece locks
+    insertGarbageLines() {
+        if (this.incomingGarbage <= 0 || !this.gameRunning) return;
+
+        const garbageToAdd = this.incomingGarbage;
+        this.incomingGarbage = 0;
+
+        console.log(`Inserting ${garbageToAdd} garbage lines`);
+
+        // Shift existing grid up
+        for (let i = 0; i < garbageToAdd; i++) {
+            // Remove top line
+            this.grid.shift();
+
+            // Add garbage line at bottom with one random gap
+            const garbageLine = Array(this.COLS).fill(this.garbageColor);
+            const gapPosition = Math.floor(Math.random() * this.COLS);
+            garbageLine[gapPosition] = 0; // Create gap
+
+            this.grid.push(garbageLine);
+        }
+
+        console.log(`Inserted ${garbageToAdd} garbage lines successfully`);
+
+        // Check if any blocks exist in the top rows (game over condition)
+        // Check top 2 rows for any placed blocks
+        for (let y = 0; y < 2; y++) {
+            for (let x = 0; x < this.COLS; x++) {
+                if (this.grid[y][x] !== 0) {
+                    console.log(`Game over: block detected at row ${y}, col ${x} after garbage insertion`);
+                    this.gameOver();
+                    return;
+                }
+            }
+        }
+    }
+
 }
