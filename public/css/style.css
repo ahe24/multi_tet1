@@ -77,6 +77,16 @@ body {
     box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
 }
 
+.login-container .secondary-btn {
+    margin-top: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    cursor: pointer;
+}
+
+.login-container .secondary-btn:hover {
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
 /* Game Screen */
 .game-container {
     display: flex;

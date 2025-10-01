@@ -79,7 +79,7 @@ class Dashboard {
             row.className = player.status === 'playing' ? 'active-player' : 'inactive-player';
             
             const joinDateTime = new Date(player.joinTime);
-            const joinTimeStr = joinDateTime.toLocaleDateString() + ' ' + joinDateTime.toLocaleTimeString();
+            const joinTimeStr = joinDateTime.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' }) + ' ' + joinDateTime.toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul' });
             const statusIcon = player.status === 'playing' ? '🎮' : '💀';
             
             row.innerHTML = `
@@ -117,7 +117,7 @@ class Dashboard {
         players.forEach((player, index) => {
             const row = document.createElement('tr');
             const lastPlayedDate = new Date(player.last_played);
-            const lastPlayedStr = lastPlayedDate.toLocaleDateString() + ' ' + lastPlayedDate.toLocaleTimeString();
+            const lastPlayedStr = lastPlayedDate.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' }) + ' ' + lastPlayedDate.toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul' });
             
             row.innerHTML = `
                 <td class="rank">${index + 1}</td>
@@ -148,7 +148,7 @@ class Dashboard {
         sessions.forEach((session, index) => {
             const row = document.createElement('tr');
             const endedDate = new Date(session.ended_at);
-            const endedStr = endedDate.toLocaleDateString() + ' ' + endedDate.toLocaleTimeString();
+            const endedStr = endedDate.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' }) + ' ' + endedDate.toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul' });
             const duration = session.duration ? this.formatDuration(session.duration) : '미완료';
             
             row.innerHTML = `

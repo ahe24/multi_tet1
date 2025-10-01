@@ -20,9 +20,10 @@ class GameManager {
         this.loginScreen = document.getElementById('loginScreen');
         this.gameScreen = document.getElementById('gameScreen');
         this.gameOverModal = document.getElementById('gameOverModal');
-        
+
         this.loginForm = document.getElementById('loginForm');
         this.playerNameInput = document.getElementById('playerName');
+        this.viewDashboardBtn = document.getElementById('viewDashboardBtn');
         
         this.currentPlayerEl = document.getElementById('currentPlayer');
         this.scoreEl = document.getElementById('score');
@@ -65,7 +66,11 @@ class GameManager {
             e.preventDefault();
             this.joinGame();
         });
-        
+
+        this.viewDashboardBtn.addEventListener('click', () => {
+            window.open('/dashboard', '_blank');
+        });
+
         this.pauseBtn.addEventListener('click', () => {
             this.pauseGame();
         });
