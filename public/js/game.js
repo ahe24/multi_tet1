@@ -732,16 +732,32 @@ class GameManager {
     }
 
     exitSpectatorMode() {
+        console.log('Exiting spectator mode...');
         this.isSpectating = false;
 
         // Hide spectator screen, show game screen
         this.spectatorScreen.classList.add('hidden');
         this.gameScreen.classList.remove('hidden');
 
-        // Restart the game
-        this.restartGame();
+        // Stop any existing game loop
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
 
-        console.log('Exited spectator mode');
+        // Completely restart the game (create new tetris instance)
+        if (this.tetris) {
+            // Clean up old tetris instance
+            this.tetris = null;
+        }
+
+        // Notify server we're restarting (reset status to 'playing')
+        this.socket.emit('restartGame');
+
+        // Start fresh game
+        this.startGame();
+
+        console.log('Exited spectator mode - new game started');
     }
 
     updateSpectatorPlayers(topPlayers) {
