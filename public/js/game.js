@@ -696,19 +696,28 @@ class GameManager {
     }
 
     enterSpectatorMode() {
+        console.log('Entering spectator mode...');
         this.isSpectating = true;
 
         // Store final score and lines
         const finalScore = this.tetris ? this.tetris.score : 0;
         const finalLines = this.tetris ? this.tetris.lines : 0;
 
-        this.spectatorFinalScore.textContent = finalScore;
-        this.spectatorFinalLines.textContent = finalLines;
+        console.log('Final score:', finalScore, 'Final lines:', finalLines);
+
+        if (this.spectatorFinalScore && this.spectatorFinalLines) {
+            this.spectatorFinalScore.textContent = finalScore;
+            this.spectatorFinalLines.textContent = finalLines;
+        } else {
+            console.error('Spectator score/lines elements not found');
+        }
 
         // Hide game screen and modal, show spectator screen
         this.gameScreen.classList.add('hidden');
         this.gameOverModal.classList.add('hidden');
         this.spectatorScreen.classList.remove('hidden');
+
+        console.log('Spectator screen visible:', !this.spectatorScreen.classList.contains('hidden'));
 
         // Stop game loop if running
         if (this.animationId) {
@@ -716,7 +725,10 @@ class GameManager {
             this.animationId = null;
         }
 
-        console.log('Entered spectator mode');
+        console.log('Entered spectator mode - isSpectating:', this.isSpectating);
+
+        // Immediately request current game state
+        this.socket.emit('requestGameUpdate');
     }
 
     exitSpectatorMode() {
@@ -738,12 +750,20 @@ class GameManager {
             this.spectatorStatuses = {};
         }
 
+        if (!this.spectatorPlayersEl) {
+            console.error('Spectator players element not found');
+            return;
+        }
+
         this.spectatorPlayersEl.innerHTML = '';
 
-        // Show all active players (no limit in spectator mode)
-        const activePlayers = topPlayers.filter(player => player.id !== this.playerId);
+        // Show all players except yourself (including those with gameover status)
+        const otherPlayers = topPlayers.filter(player => player.id !== this.playerId);
 
-        if (activePlayers.length === 0) {
+        console.log('Spectator mode - All players:', topPlayers.length);
+        console.log('Spectator mode - Other players:', otherPlayers.length);
+
+        if (otherPlayers.length === 0) {
             this.spectatorPlayersEl.innerHTML = `
                 <div style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.7); padding: 2rem;">
                     <p style="font-size: 1.2rem;">현재 활성 플레이어가 없습니다</p>
@@ -753,8 +773,8 @@ class GameManager {
             return;
         }
 
-        activePlayers.forEach((player, index) => {
-            const rank = index + 1;
+        otherPlayers.forEach((player, index) => {
+            const rank = topPlayers.findIndex(p => p.id === player.id) + 1;
             const playerDiv = this.createSpectatorPlayerElement(player, rank);
             this.spectatorPlayersEl.appendChild(playerDiv);
 

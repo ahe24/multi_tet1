@@ -210,13 +210,20 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('requestGameUpdate', () => {
+    // Send current game state to requesting client (for spectator mode)
+    const ranking = getRanking();
+    socket.emit('gameUpdate', ranking);
+    console.log('Sent game update to spectator:', socket.id);
+  });
+
   socket.on('getDashboard', async () => {
     const ranking = getRanking();
-    
+
     try {
       const topPlayers = await db.getTopPlayers(10);
       const recentSessions = await db.getRecentSessions(20);
-      
+
       socket.emit('dashboardData', {
         ...ranking,
         topPlayersAllTime: topPlayers,
