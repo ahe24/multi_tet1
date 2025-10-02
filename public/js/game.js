@@ -351,37 +351,65 @@ class GameManager {
     }
     
     updateTopPlayers(topPlayers) {
+        // Track previous player statuses for animation triggers
+        if (!this.playerStatuses) {
+            this.playerStatuses = {};
+        }
+
         this.topPlayersEl.innerHTML = '';
 
         // Limit to maximum 6 players and exclude current player
         const otherPlayers = topPlayers.filter(player => player.id !== this.playerId);
         const playersToShow = otherPlayers.slice(0, 6);
-        
+
         playersToShow.forEach((player, index) => {
             const actualRank = topPlayers.findIndex(p => p.id === player.id) + 1;
             const playerDiv = this.createTopPlayerElement(player, actualRank);
             this.topPlayersEl.appendChild(playerDiv);
+
+            // Check if this player just got game over (status changed)
+            const wasPlaying = this.playerStatuses[player.id] === 'playing';
+            const isGameOver = player.status === 'gameover';
+
+            if (wasPlaying && isGameOver) {
+                // Trigger flash and shake animation
+                playerDiv.classList.add('flash-red', 'shake');
+
+                // Remove animation classes after animation completes
+                setTimeout(() => {
+                    playerDiv.classList.remove('flash-red', 'shake');
+                }, 500);
+            }
+
+            // Update stored status
+            this.playerStatuses[player.id] = player.status;
         });
     }
     
     createTopPlayerElement(player, rank) {
         const playerDiv = document.createElement('div');
         playerDiv.className = 'top-player';
-        
+        playerDiv.dataset.playerId = player.id;
+
         const miniCanvas = document.createElement('canvas');
         miniCanvas.width = 80;
         miniCanvas.height = 160;
         miniCanvas.className = 'mini-canvas';
-        
+
         const ctx = miniCanvas.getContext('2d');
         this.drawMiniGrid(ctx, player.grid, miniCanvas.width, miniCanvas.height);
-        
+
         playerDiv.innerHTML = `
             <div class="player-name">${player.name}</div>
         `;
-        
+
         playerDiv.appendChild(miniCanvas);
-        
+
+        // Apply game over effect if player status is 'gameover'
+        if (player.status === 'gameover') {
+            playerDiv.classList.add('game-over');
+        }
+
         return playerDiv;
     }
     

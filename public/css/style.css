@@ -171,6 +171,60 @@ body {
     width: 80px;
     height: 160px;
     margin: 0 auto;
+    transition: filter 0.3s ease, opacity 0.3s ease, border-color 0.5s ease;
+}
+
+/* Game over effects for opponent grids */
+.top-player.game-over .mini-canvas {
+    filter: grayscale(100%);
+    opacity: 0.6;
+    border-color: rgba(255, 107, 107, 0.6);
+}
+
+.top-player.game-over {
+    position: relative;
+}
+
+.top-player.game-over::after {
+    content: "GAME OVER";
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 107, 107, 0.9);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.6rem;
+    font-weight: bold;
+    z-index: 5;
+}
+
+/* Red border flash animation */
+@keyframes redFlash {
+    0%, 100% {
+        border-color: rgba(255, 107, 107, 0.6);
+        box-shadow: 0 0 0 rgba(255, 107, 107, 0);
+    }
+    50% {
+        border-color: rgba(255, 107, 107, 1);
+        box-shadow: 0 0 15px rgba(255, 107, 107, 0.8);
+    }
+}
+
+.top-player.flash-red {
+    animation: redFlash 0.5s ease-in-out;
+}
+
+/* Shake animation */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+.top-player.shake {
+    animation: shake 0.3s ease-in-out;
 }
 
 .main-game {
