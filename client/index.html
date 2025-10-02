@@ -84,47 +84,45 @@
                     </div>
                 </div>
 
-                <div class="instructions">
-                    <h4>조작법:</h4>
-                    <div class="control-section">
-                        <strong>키보드:</strong>
-                        <p>← → 이동</p>
-                        <p>↓ 소프트 드롭</p>
-                        <p>스페이스 하드 드롭</p>
-                        <p>↑ 회전</p>
-                        <p>P 일시정지</p>
+                <div class="game-options">
+                    <div class="rotation-control">
+                        <h4>회전 방향:</h4>
+                        <button id="rotationToggle" class="rotation-btn">
+                            <span id="rotationDirection">반시계방향</span>
+                            <span class="rotation-icon">🔄</span>
+                        </button>
+                        <p class="rotation-hint">클릭하여 변경</p>
                     </div>
-                    <div class="control-section">
-                        <strong>마우스:</strong>
-                        <p>클릭: 이동/회전</p>
-                        <p>휠: 회전</p>
-                        <p>더블클릭: 하드 드롭</p>
-                        <p>우클릭: 회전</p>
+
+                    <div id="gravityGameControl" class="gravity-game-control hidden">
+                        <h4>게임 설정:</h4>
+                        <label class="toggle-label small">
+                            <input type="checkbox" id="gravityGameToggle">
+                            <span class="toggle-slider small"></span>
+                            <span class="toggle-text">중력 효과</span>
+                        </label>
+                        <p class="setting-hint">첫 번째 플레이어만 변경 가능</p>
                     </div>
-                    <div class="control-section">
-                        <strong>터치:</strong>
-                        <p>버튼 또는 스와이프</p>
-                        <p>탭: 회전</p>
-                    </div>
-                </div>
-                
-                <div class="rotation-control">
-                    <h4>회전 방향:</h4>
-                    <button id="rotationToggle" class="rotation-btn">
-                        <span id="rotationDirection">반시계방향</span>
-                        <span class="rotation-icon">🔄</span>
-                    </button>
-                    <p class="rotation-hint">클릭하여 변경</p>
                 </div>
 
-                <div id="gravityGameControl" class="gravity-game-control hidden">
-                    <h4>게임 설정:</h4>
-                    <label class="toggle-label small">
-                        <input type="checkbox" id="gravityGameToggle">
-                        <span class="toggle-slider small"></span>
-                        <span class="toggle-text">중력 효과</span>
-                    </label>
-                    <p class="setting-hint">첫 번째 플레이어만 변경 가능</p>
+                <div class="instructions">
+                    <h4>조작법</h4>
+                    <div class="controls-grid">
+                        <div class="control-section">
+                            <strong>키보드</strong>
+                            <p>← → 이동 | ↓ 소프트드롭</p>
+                            <p>스페이스 하드드롭 | ↑ 회전</p>
+                        </div>
+                        <div class="control-section">
+                            <strong>마우스</strong>
+                            <p>클릭 이동/회전 | 휠 회전</p>
+                            <p>더블클릭 하드드롭</p>
+                        </div>
+                        <div class="control-section">
+                            <strong>터치</strong>
+                            <p>버튼/스와이프 | 탭 회전</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

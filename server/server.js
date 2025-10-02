@@ -70,9 +70,9 @@ class Player {
 function getRanking() {
   const playerList = Array.from(players.values())
     .sort((a, b) => b.score - a.score);
-  
+
   return {
-    topPlayers: playerList.slice(0, 5),
+    topPlayers: playerList.slice(0, 7), // Send top 7 so current player + 6 others can be shown
     allPlayers: playerList
   };
 }
