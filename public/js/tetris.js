@@ -357,7 +357,18 @@ class Tetris {
         this.score += points;
 
         this.level = Math.floor(this.lines / 10) + 1;
-        this.dropInterval = Math.max(50, 1000 - (this.level - 1) * 50);
+
+        // Drop speed calculation with smoother progression and reasonable cap
+        // Level 1-15: Fast progression (50ms per level)
+        // Level 16-20: Slower progression (25ms per level)
+        // Level 21+: Cap at 150ms (still challenging but playable)
+        if (this.level <= 15) {
+            this.dropInterval = 1000 - (this.level - 1) * 50; // 1000ms -> 300ms
+        } else if (this.level <= 20) {
+            this.dropInterval = 300 - (this.level - 15) * 30; // 300ms -> 150ms
+        } else {
+            this.dropInterval = 150; // Cap at 150ms for level 21+
+        }
 
         // Garbage system: Cancel incoming garbage first, then send attack
         const garbageToSend = this.calculateGarbageLines(linesCleared);
