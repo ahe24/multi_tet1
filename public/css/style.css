@@ -663,6 +663,26 @@ input[type="checkbox"]:checked + .toggle-slider.small::before {
     box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
 }
 
+.modal-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.modal-buttons button {
+    flex: 1;
+    min-width: 140px;
+}
+
+.spectator-btn {
+    background: linear-gradient(45deg, #667eea, #764ba2) !important;
+}
+
+.spectator-btn:hover {
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4) !important;
+}
+
 
 /* Dashboard Styles */
 .dashboard-container {
@@ -1193,5 +1213,200 @@ input[type="checkbox"]:checked + .toggle-slider.small::before {
     100% {
         opacity: 0;
         transform: translateY(-50%) translateX(50px);
+    }
+}
+
+/* Spectator Mode Styles */
+.spectator-container {
+    max-width: 1400px;
+    width: 100%;
+    padding: 2rem;
+}
+
+.spectator-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.spectator-info h1 {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+}
+
+.spectator-stats {
+    display: flex;
+    gap: 2rem;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.spectator-stats strong {
+    color: #4ecdc4;
+    font-size: 1.2rem;
+}
+
+.spectator-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.join-game-btn,
+.dashboard-btn-spectator {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.join-game-btn {
+    background: linear-gradient(45deg, #ff6b6b, #ff5252);
+}
+
+.join-game-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+}
+
+.dashboard-btn-spectator {
+    background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+}
+
+.dashboard-btn-spectator:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+}
+
+.spectator-players {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.spectator-players h3 {
+    text-align: center;
+    color: #4ecdc4;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+.spectator-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.spectator-player {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.spectator-player:hover {
+    border-color: rgba(78, 205, 196, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.spectator-player-rank {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ff6b6b;
+    margin-bottom: 0.5rem;
+}
+
+.spectator-player-name {
+    font-size: 1.1rem;
+    color: #4ecdc4;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.spectator-player-score {
+    font-size: 0.9rem;
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+
+.spectator-canvas {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    background: #000;
+    width: 160px;
+    height: 320px;
+    margin: 0 auto;
+    display: block;
+}
+
+.spectator-player.game-over {
+    position: relative;
+}
+
+.spectator-player.game-over .spectator-canvas {
+    filter: grayscale(100%);
+    opacity: 0.6;
+    border-color: rgba(255, 107, 107, 0.6);
+}
+
+.spectator-player.game-over::after {
+    content: "GAME OVER";
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 107, 107, 0.9);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 5;
+}
+
+@media (max-width: 768px) {
+    .spectator-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .spectator-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .spectator-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .spectator-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .spectator-canvas {
+        width: 120px;
+        height: 240px;
     }
 }

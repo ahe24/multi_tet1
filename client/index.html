@@ -133,7 +133,34 @@
             <h2>게임 오버!</h2>
             <p>최종 점수: <span id="finalScore">0</span></p>
             <p>제거한 라인: <span id="finalLines">0</span></p>
-            <button id="playAgainBtn">다시 플레이</button>
+            <div class="modal-buttons">
+                <button id="playAgainBtn">다시 플레이</button>
+                <button id="spectatorBtn" class="spectator-btn">관전 모드</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spectator Mode UI -->
+    <div id="spectatorScreen" class="screen hidden">
+        <div class="spectator-container">
+            <div class="spectator-header">
+                <div class="spectator-info">
+                    <h1>🎮 관전 모드</h1>
+                    <div class="spectator-stats">
+                        <span>당신의 최종 점수: <strong id="spectatorFinalScore">0</strong></span>
+                        <span>제거한 라인: <strong id="spectatorFinalLines">0</strong></span>
+                    </div>
+                </div>
+                <div class="spectator-actions">
+                    <button id="joinGameBtn" class="join-game-btn">게임 참가</button>
+                    <button id="spectatorDashboardBtn" class="dashboard-btn-spectator">대시보드</button>
+                </div>
+            </div>
+
+            <div class="spectator-players">
+                <h3>활성 플레이어</h3>
+                <div id="spectatorPlayers" class="spectator-grid"></div>
+            </div>
         </div>
     </div>
 

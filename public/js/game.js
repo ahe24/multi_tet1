@@ -22,34 +22,43 @@ class GameManager {
         this.loginScreen = document.getElementById('loginScreen');
         this.gameScreen = document.getElementById('gameScreen');
         this.gameOverModal = document.getElementById('gameOverModal');
+        this.spectatorScreen = document.getElementById('spectatorScreen');
 
         this.loginForm = document.getElementById('loginForm');
         this.playerNameInput = document.getElementById('playerName');
         this.viewDashboardBtn = document.getElementById('viewDashboardBtn');
-        
+
         this.currentPlayerEl = document.getElementById('currentPlayer');
         this.scoreEl = document.getElementById('score');
         this.levelEl = document.getElementById('level');
         this.linesEl = document.getElementById('lines');
         this.finalScoreEl = document.getElementById('finalScore');
         this.finalLinesEl = document.getElementById('finalLines');
-        
+
         this.levelProgressFill = document.getElementById('levelProgressFill');
         this.levelCountdown = document.getElementById('levelCountdown');
-        
+
         this.topPlayersEl = document.getElementById('topPlayers');
-        
+
         this.pauseBtn = document.getElementById('pauseBtn');
         this.restartBtn = document.getElementById('restartBtn');
         this.dashboardBtn = document.getElementById('dashboardBtn');
         this.playAgainBtn = document.getElementById('playAgainBtn');
-        
+        this.spectatorBtn = document.getElementById('spectatorBtn');
+
+        // Spectator mode elements
+        this.spectatorPlayersEl = document.getElementById('spectatorPlayers');
+        this.spectatorFinalScore = document.getElementById('spectatorFinalScore');
+        this.spectatorFinalLines = document.getElementById('spectatorFinalLines');
+        this.joinGameBtn = document.getElementById('joinGameBtn');
+        this.spectatorDashboardBtn = document.getElementById('spectatorDashboardBtn');
+
         this.rotationToggle = document.getElementById('rotationToggle');
         this.rotationDirection = document.getElementById('rotationDirection');
-        
+
         this.gameCanvas = document.getElementById('gameCanvas');
         this.nextCanvas = document.getElementById('nextCanvas');
-        
+
         // Touch control elements
         this.touchControls = document.getElementById('touchControls');
         this.touchMoveLeft = document.getElementById('touchMoveLeft');
@@ -67,6 +76,7 @@ class GameManager {
 
         this.previousLevel = 1;
         this.isMobile = this.detectMobile();
+        this.isSpectating = false;
     }
     
     setupEventListeners() {
@@ -95,7 +105,19 @@ class GameManager {
             this.restartGame();
             this.gameOverModal.classList.add('hidden');
         });
-        
+
+        this.spectatorBtn.addEventListener('click', () => {
+            this.enterSpectatorMode();
+        });
+
+        this.joinGameBtn.addEventListener('click', () => {
+            this.exitSpectatorMode();
+        });
+
+        this.spectatorDashboardBtn.addEventListener('click', () => {
+            window.open('/dashboard', '_blank');
+        });
+
         this.rotationToggle.addEventListener('click', () => {
             if (this.tetris) {
                 const direction = this.tetris.toggleRotationDirection();
@@ -166,7 +188,11 @@ class GameManager {
         });
 
         this.socket.on('gameUpdate', (data) => {
-            this.updateTopPlayers(data.topPlayers);
+            if (this.isSpectating) {
+                this.updateSpectatorPlayers(data.topPlayers);
+            } else {
+                this.updateTopPlayers(data.topPlayers);
+            }
         });
 
         this.socket.on('garbageAttack', (data) => {
@@ -667,6 +693,117 @@ class GameManager {
         setTimeout(() => {
             notification.remove();
         }, 2000);
+    }
+
+    enterSpectatorMode() {
+        this.isSpectating = true;
+
+        // Store final score and lines
+        const finalScore = this.tetris ? this.tetris.score : 0;
+        const finalLines = this.tetris ? this.tetris.lines : 0;
+
+        this.spectatorFinalScore.textContent = finalScore;
+        this.spectatorFinalLines.textContent = finalLines;
+
+        // Hide game screen and modal, show spectator screen
+        this.gameScreen.classList.add('hidden');
+        this.gameOverModal.classList.add('hidden');
+        this.spectatorScreen.classList.remove('hidden');
+
+        // Stop game loop if running
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+
+        console.log('Entered spectator mode');
+    }
+
+    exitSpectatorMode() {
+        this.isSpectating = false;
+
+        // Hide spectator screen, show game screen
+        this.spectatorScreen.classList.add('hidden');
+        this.gameScreen.classList.remove('hidden');
+
+        // Restart the game
+        this.restartGame();
+
+        console.log('Exited spectator mode');
+    }
+
+    updateSpectatorPlayers(topPlayers) {
+        // Track previous player statuses for animation triggers
+        if (!this.spectatorStatuses) {
+            this.spectatorStatuses = {};
+        }
+
+        this.spectatorPlayersEl.innerHTML = '';
+
+        // Show all active players (no limit in spectator mode)
+        const activePlayers = topPlayers.filter(player => player.id !== this.playerId);
+
+        if (activePlayers.length === 0) {
+            this.spectatorPlayersEl.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.7); padding: 2rem;">
+                    <p style="font-size: 1.2rem;">현재 활성 플레이어가 없습니다</p>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">다른 플레이어가 게임에 참여할 때까지 기다려주세요</p>
+                </div>
+            `;
+            return;
+        }
+
+        activePlayers.forEach((player, index) => {
+            const rank = index + 1;
+            const playerDiv = this.createSpectatorPlayerElement(player, rank);
+            this.spectatorPlayersEl.appendChild(playerDiv);
+
+            // Check if this player just got game over (status changed)
+            const wasPlaying = this.spectatorStatuses[player.id] === 'playing';
+            const isGameOver = player.status === 'gameover';
+
+            if (wasPlaying && isGameOver) {
+                // Trigger flash and shake animation
+                playerDiv.classList.add('flash-red', 'shake');
+
+                // Remove animation classes after animation completes
+                setTimeout(() => {
+                    playerDiv.classList.remove('flash-red', 'shake');
+                }, 500);
+            }
+
+            // Update stored status
+            this.spectatorStatuses[player.id] = player.status;
+        });
+    }
+
+    createSpectatorPlayerElement(player, rank) {
+        const playerDiv = document.createElement('div');
+        playerDiv.className = 'spectator-player';
+        playerDiv.dataset.playerId = player.id;
+
+        const spectatorCanvas = document.createElement('canvas');
+        spectatorCanvas.width = 160;
+        spectatorCanvas.height = 320;
+        spectatorCanvas.className = 'spectator-canvas';
+
+        const ctx = spectatorCanvas.getContext('2d');
+        this.drawMiniGrid(ctx, player.grid, spectatorCanvas.width, spectatorCanvas.height);
+
+        playerDiv.innerHTML = `
+            <div class="spectator-player-rank">#${rank}</div>
+            <div class="spectator-player-name">${player.name}</div>
+            <div class="spectator-player-score">점수: ${player.score} | 레벨: ${player.level || 1}</div>
+        `;
+
+        playerDiv.appendChild(spectatorCanvas);
+
+        // Apply game over effect if player status is 'gameover'
+        if (player.status === 'gameover') {
+            playerDiv.classList.add('game-over');
+        }
+
+        return playerDiv;
     }
 
 }
