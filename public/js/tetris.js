@@ -18,19 +18,20 @@ class Tetris {
         
         this.currentPiece = null;
         this.nextPiece = null;
-        
+
         this.gameRunning = false;
         this.gamePaused = false;
         this.rotationDirection = -1; // -1 for counterclockwise (default), 1 for clockwise
-        
+
         // Line clearing animation system
         this.linesToClear = [];
         this.clearingLines = false;
         this.clearAnimationTime = 0;
         this.clearAnimationDuration = 500; // 500ms animation
         this.flashEffect = null;
-        
+
         // Gravity animation system
+        this.gravityEnabled = true; // Can be toggled by first player
         this.gravityBlocks = []; // Blocks currently falling due to gravity
         this.applyingGravity = false;
         this.gravityAnimationTime = 0;
@@ -212,7 +213,12 @@ class Tetris {
     getRotationDirection() {
         return this.rotationDirection === 1 ? '시계방향' : '반시계방향';
     }
-    
+
+    setGravityEnabled(enabled) {
+        this.gravityEnabled = enabled;
+        console.log(`Tetris gravity ${enabled ? 'enabled' : 'disabled'}`);
+    }
+
     placePiece() {
         const piece = this.currentPiece;
         for (let y = 0; y < piece.shape.length; y++) {
@@ -398,6 +404,12 @@ class Tetris {
     }
     
     startGravityAnimation() {
+        // Skip gravity animation if disabled
+        if (!this.gravityEnabled) {
+            console.log('Gravity disabled - skipping animation');
+            return;
+        }
+
         this.gravityBlocks = [];
 
         // Make a copy of current grid state (after lines were cleared)

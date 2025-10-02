@@ -4,14 +4,16 @@ class GameManager {
         this.tetris = null;
         this.playerId = null;
         this.playerName = null;
-        
+        this.isFirstPlayer = false;
+        this.gravityEnabled = true;
+
         this.initElements();
         this.setupEventListeners();
         this.setupSocketEvents();
         this.setupKeyboardControls();
         this.setupTouchControls();
         this.setupMouseControls();
-        
+
         this.lastTime = 0;
         this.animationId = null;
     }
@@ -56,7 +58,13 @@ class GameManager {
         this.touchSoftDrop = document.getElementById('touchSoftDrop');
         this.touchHardDrop = document.getElementById('touchHardDrop');
         this.touchPause = document.getElementById('touchPause');
-        
+
+        // Gravity control elements
+        this.gravityControlContainer = document.getElementById('gravityControlContainer');
+        this.gravityToggle = document.getElementById('gravityToggle');
+        this.gravityGameControl = document.getElementById('gravityGameControl');
+        this.gravityGameToggle = document.getElementById('gravityGameToggle');
+
         this.previousLevel = 1;
         this.isMobile = this.detectMobile();
     }
@@ -94,18 +102,67 @@ class GameManager {
                 this.rotationDirection.textContent = direction;
             }
         });
+
+        // Gravity toggle event (during gameplay, first player only)
+        if (this.gravityGameToggle) {
+            this.gravityGameToggle.addEventListener('change', (e) => {
+                if (this.isFirstPlayer) {
+                    const gravityEnabled = e.target.checked;
+                    this.socket.emit('updateGravity', { gravityEnabled });
+                } else {
+                    // Revert change if not first player
+                    e.target.checked = this.gravityEnabled;
+                }
+            });
+        }
     }
     
     setupSocketEvents() {
+        this.socket.on('gameSettings', (data) => {
+            // Received on connection - show gravity toggle if first player
+            this.gravityEnabled = data.gravityEnabled;
+            if (data.isFirstPlayer && this.gravityControlContainer) {
+                this.gravityControlContainer.classList.remove('hidden');
+            }
+        });
+
         this.socket.on('gameJoined', (data) => {
             this.playerId = data.playerId;
             this.playerName = data.playerName;
+            this.isFirstPlayer = data.isFirstPlayer;
+            this.gravityEnabled = data.gravityEnabled;
             this.currentPlayerEl.textContent = data.playerName;
+
+            // Show in-game gravity control if first player
+            if (this.isFirstPlayer && this.gravityGameControl) {
+                this.gravityGameControl.classList.remove('hidden');
+            }
 
             this.loginScreen.classList.add('hidden');
             this.gameScreen.classList.remove('hidden');
 
             this.startGame();
+        });
+
+        this.socket.on('becomeFirstPlayer', (data) => {
+            // When original first player disconnects
+            this.isFirstPlayer = true;
+            if (this.gravityGameControl) {
+                this.gravityGameControl.classList.remove('hidden');
+            }
+            console.log('You are now the first player and can control settings');
+        });
+
+        this.socket.on('gravityUpdate', (data) => {
+            // Received when gravity setting changes
+            this.gravityEnabled = data.gravityEnabled;
+            if (this.gravityGameToggle) {
+                this.gravityGameToggle.checked = data.gravityEnabled;
+            }
+            if (this.tetris) {
+                this.tetris.setGravityEnabled(data.gravityEnabled);
+            }
+            console.log(`Gravity ${data.gravityEnabled ? 'enabled' : 'disabled'}`);
         });
 
         this.socket.on('gameUpdate', (data) => {
@@ -167,12 +224,17 @@ class GameManager {
     joinGame() {
         const name = this.playerNameInput.value.trim();
         if (name) {
-            this.socket.emit('joinGame', { name: name });
+            const gravityEnabled = this.gravityToggle ? this.gravityToggle.checked : true;
+            this.socket.emit('joinGame', {
+                name: name,
+                gravityEnabled: gravityEnabled
+            });
         }
     }
     
     startGame() {
         this.tetris = new Tetris(this.gameCanvas, this.nextCanvas);
+        this.tetris.setGravityEnabled(this.gravityEnabled);
 
         this.tetris.onScoreUpdate = (score, level, lines) => {
             this.scoreEl.textContent = score;

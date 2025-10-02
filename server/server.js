@@ -25,6 +25,12 @@ app.use(express.static(path.join(__dirname, '../client')));
 const players = new Map();
 const db = new Database();
 
+// Game settings controlled by first player
+let gameSettings = {
+  gravityEnabled: true,
+  firstPlayerId: null
+};
+
 class Player {
   constructor(id, name, socket) {
     this.id = id;
@@ -79,17 +85,39 @@ function broadcastUpdate() {
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
+  // Send current game settings to new connection
+  socket.emit('gameSettings', {
+    gravityEnabled: gameSettings.gravityEnabled,
+    isFirstPlayer: players.size === 0
+  });
+
   socket.on('joinGame', (data) => {
     const playerId = uuidv4();
     const player = new Player(playerId, data.name, socket);
-    
+
     players.set(socket.id, player);
-    
+
+    // Set first player if no players exist
+    const isFirstPlayer = !gameSettings.firstPlayerId;
+    if (isFirstPlayer) {
+      gameSettings.firstPlayerId = socket.id;
+      console.log(`${data.name} is the first player and can control game settings`);
+    }
+
+    // Apply initial gravity setting from data if first player
+    if (isFirstPlayer && data.gravityEnabled !== undefined) {
+      gameSettings.gravityEnabled = data.gravityEnabled;
+      io.emit('gravityUpdate', { gravityEnabled: gameSettings.gravityEnabled });
+      console.log(`Gravity set to ${gameSettings.gravityEnabled} by first player`);
+    }
+
     socket.emit('gameJoined', {
       playerId: playerId,
-      playerName: data.name
+      playerName: data.name,
+      isFirstPlayer: isFirstPlayer,
+      gravityEnabled: gameSettings.gravityEnabled
     });
-    
+
     console.log(`Player ${data.name} (${playerId}) joined the game`);
     broadcastUpdate();
   });
@@ -169,6 +197,19 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('updateGravity', (data) => {
+    // Only allow first player to update gravity
+    if (socket.id === gameSettings.firstPlayerId) {
+      gameSettings.gravityEnabled = data.gravityEnabled;
+      console.log(`First player updated gravity to: ${gameSettings.gravityEnabled}`);
+
+      // Broadcast to all clients
+      io.emit('gravityUpdate', { gravityEnabled: gameSettings.gravityEnabled });
+    } else {
+      console.log(`Non-first player attempted to change gravity setting`);
+    }
+  });
+
   socket.on('getDashboard', async () => {
     const ranking = getRanking();
     
@@ -191,7 +232,7 @@ io.on('connection', (socket) => {
     const player = players.get(socket.id);
     if (player) {
       console.log(`Player ${player.name} disconnected`);
-      
+
       // Save current game state when player disconnects
       if (player.status === 'playing' && player.score > 0) {
         try {
@@ -218,7 +259,24 @@ io.on('connection', (socket) => {
           console.error('Error saving game progress on disconnect:', error);
         }
       }
-      
+
+      // If first player disconnects, reset first player
+      if (socket.id === gameSettings.firstPlayerId) {
+        gameSettings.firstPlayerId = null;
+        console.log('First player disconnected, resetting first player status');
+
+        // Assign first player to next available player if any
+        if (players.size > 1) {
+          const nextPlayer = Array.from(players.keys()).find(id => id !== socket.id);
+          if (nextPlayer) {
+            gameSettings.firstPlayerId = nextPlayer;
+            const newFirstPlayer = players.get(nextPlayer);
+            console.log(`${newFirstPlayer.name} is now the first player`);
+            io.to(nextPlayer).emit('becomeFirstPlayer', { isFirstPlayer: true });
+          }
+        }
+      }
+
       players.delete(socket.id);
       broadcastUpdate();
     }
