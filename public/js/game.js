@@ -377,9 +377,7 @@ class GameManager {
         this.drawMiniGrid(ctx, player.grid, miniCanvas.width, miniCanvas.height);
         
         playerDiv.innerHTML = `
-            <div class="player-rank">#${rank}</div>
             <div class="player-name">${player.name}</div>
-            <div class="player-score">${player.score}</div>
         `;
         
         playerDiv.appendChild(miniCanvas);

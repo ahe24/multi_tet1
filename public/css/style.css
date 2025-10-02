@@ -122,14 +122,14 @@ body {
 
 .top-player {
     background: rgba(255, 255, 255, 0.05);
-    padding: 0.6rem;
+    padding: 0.5rem;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 220px;
+    align-items: center;
+    gap: 0.3rem;
 }
 
 .player-rank {
@@ -140,12 +140,13 @@ body {
 }
 
 .player-name {
-    font-size: 0.85rem;
-    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
     color: #4ecdc4;
-    font-weight: 500;
-    line-height: 1.2;
-    min-height: 1.2em;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .player-level {
