@@ -27,7 +27,7 @@ const db = new Database();
 
 // Game settings controlled by first player
 let gameSettings = {
-  gravityEnabled: true,
+  gravityEnabled: false,
   firstPlayerId: null
 };
 

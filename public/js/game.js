@@ -5,7 +5,7 @@ class GameManager {
         this.playerId = null;
         this.playerName = null;
         this.isFirstPlayer = false;
-        this.gravityEnabled = true;
+        this.gravityEnabled = false;
 
         this.initElements();
         this.setupEventListeners();
@@ -224,7 +224,7 @@ class GameManager {
     joinGame() {
         const name = this.playerNameInput.value.trim();
         if (name) {
-            const gravityEnabled = this.gravityToggle ? this.gravityToggle.checked : true;
+            const gravityEnabled = this.gravityToggle ? this.gravityToggle.checked : false;
             this.socket.emit('joinGame', {
                 name: name,
                 gravityEnabled: gravityEnabled
@@ -352,10 +352,10 @@ class GameManager {
     
     updateTopPlayers(topPlayers) {
         this.topPlayersEl.innerHTML = '';
-        
-        // Limit to maximum 4 players and exclude current player
+
+        // Limit to maximum 6 players and exclude current player
         const otherPlayers = topPlayers.filter(player => player.id !== this.playerId);
-        const playersToShow = otherPlayers.slice(0, 4);
+        const playersToShow = otherPlayers.slice(0, 6);
         
         playersToShow.forEach((player, index) => {
             const actualRank = topPlayers.findIndex(p => p.id === player.id) + 1;

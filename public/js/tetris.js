@@ -31,7 +31,7 @@ class Tetris {
         this.flashEffect = null;
 
         // Gravity animation system
-        this.gravityEnabled = true; // Can be toggled by first player
+        this.gravityEnabled = false; // Can be toggled by first player
         this.gravityBlocks = []; // Blocks currently falling due to gravity
         this.applyingGravity = false;
         this.gravityAnimationTime = 0;
